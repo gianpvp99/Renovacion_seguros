@@ -188,22 +188,26 @@
             });
         }
 
-        function enviar_archivo(indicadorExito, guid, idreclamo, asunto, data)
+        async function enviar_archivo(indicadorExito, guid, idreclamo, asunto, data)
         {
             var url = "https://pisac.mafperu.com.pe/wa_experiencia_midleware/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto; // https://mafperu.com.pe/wa_experiencia_crm_vs2/api/
-            //var url = "https://localhost:44324/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto;
-            $.ajax({
-                type: "POST",
-                url: url,
-                contentType: false,
-                processData: false,
-                data: data,
-                success: function (response) {
-                },
-                failure: function (response) {
+            // var url = "https://localhost:44324/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto;
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    body: data
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    // Procesar la respuesta si es necesario
+                } else {
                     alert("Hubo error en proceso de envío de archivos.");
                 }
-            });
+            } catch (error) {
+                console.error("Error en el proceso de envío de archivos:", error);
+                alert("Hubo error en proceso de envío de archivos.");
+            }
         }
 
         function validarDatos(){
@@ -341,7 +345,7 @@
             }
         }
 
-        function enviar(){
+        async function enviar(){
             if (validarDatos() == true) {
                 var elements = [];
                 for (const value of datafiles.values()) {
@@ -422,50 +426,52 @@
                 // var _url = 'https://localhost:44324/api/vehiculo/enviarvehiculo?mensaje=' + _mensaje;  
                 var _url = 'https://api-col-prod.crossnet.la/WebApiMafperu/api/vehiculo/enviarvehiculo?mensaje=' + _mensaje;  
                 
-                $.ajax({
-                    type: "POST",
-                    url: _url,
-                    dataType: "json",
-                    contentType: "application/json;charset=utf-8",
-                    data: JSON.stringify(registro),
-                    beforeSend: function() {
-                        setTimeout(function(){
-                            $("#modalWait").show();
-                            $('#btnEnviar').prop('disabled', true);
+                try {
 
-                        }, 1000);
-                    },
-                    success: function (response) {
-                        if (response != null) {
-                            var result = JSON.parse(JSON.stringify(response));
-                            var indicadorExito = 0;
-                            var guid = '';
-                            var idreclamo = '';
-                           
-                            if (result != null)
-                            {
-                                indicadorExito = result.indicadorExito;
-                                guid = result.guid;
-                                idreclamo = result.idreclamo;
+                    $("#modalWait").show();
+                    $('#btnEnviar').prop('disabled', true);
 
-                                enviar_archivo(indicadorExito, guid, idreclamo, "Informacion Vehicular", datafiles); 
-                                
-                                $("#modalWait").hide();
-                                $("#cliente").html(_nombres);
-                                $("#modalSuccess").modal("show");
-                                $('#btnEnviar').prop('disabled', false);                                   
-                                
-                                LimpiarControles();                               
-                            }
-                            else{
-                                alert("Hubo error en proceso de envío. Por favor, verifique.");
-                            }
+                    const response = await fetch(_url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json;charset=utf-8"
+                        },
+                        body: JSON.stringify(registro)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        let indicadorExito = 0;
+                        let guid = '';
+                        let idreclamo = '';
+
+                        if (result) {
+                            indicadorExito = result.indicadorExito;
+                            guid = result.guid;
+                            idreclamo = result.idreclamo;
+
+                            await enviar_archivo(indicadorExito, guid, idreclamo, "Informacion Vehicular", datafiles);
+
+                            $("#modalWait").hide();
+                            $("#cliente").html(_nombres);
+                            $("#modalSuccess").modal("show");
+                            $('#btnEnviar').prop('disabled', false);
+
+                            LimpiarControles();
+                        } else {
+                            alert("Hubo error en proceso de envío. Por favor, verifique.");
                         }
-                    },
-                    failure: function (response) {
+                    } else {
                         alert("Hubo error en proceso de envío.");
                     }
-                });  
+
+                } catch (error) {
+                    console.error("Error en el proceso de envío:", error);
+                    alert("Hubo error en proceso de envío.");
+                } finally {
+                    $("#modalWait").hide();
+                    $('#btnEnviar').prop('disabled', false);
+                }
             }else{
                 alert("Los campos Tipo y Número de documento, Nombres y Apellidos, Correo y Teléfono son obligatorios.");
             }          
