@@ -190,8 +190,8 @@
 
         function enviar_archivo(indicadorExito, guid, idreclamo, asunto, data)
         {
-            // var url = "https://mafperu.com.pe/wa_experiencia_crm_vs2/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto; // https://mafperu.com.pe/wa_experiencia_crm_vs2/api/
-            var url = "https://localhost:44324/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto;
+            var url = "https://pisac.mafperu.com.pe/wa_experiencia_midleware/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto; // https://mafperu.com.pe/wa_experiencia_crm_vs2/api/
+            //var url = "https://localhost:44324/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto;
             $.ajax({
                 type: "POST",
                 url: url,
