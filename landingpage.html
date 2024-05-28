@@ -1,0 +1,702 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" />
+    <style type="text/css">
+        body {
+            font-family: Tahoma;
+            font-size: 13px;
+        }
+
+        table {
+            border: 0;
+            width: 50%;
+        }
+
+        tr {
+            font-weight: bold;
+            height: 30px;
+        }
+
+        td {
+            width: 200px;
+        }
+
+        .fila_titulo {
+            height: 35px;
+            width: 100%;
+            color: #003A78;
+            font-weight: bold;
+            border-bottom-color: #003A78;
+            border-bottom-width: 1px;
+            border-bottom-style: solid;
+        }
+
+        .label {
+            font-weight: normal;
+        }
+
+        .input {
+            width: 260px;
+        }
+
+        .combo {
+            width: 180px;
+        }
+
+        .boton {
+            background-color: gray;
+            font-family: Tahoma;
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: bold;
+            height: 30px;
+            width: 120px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script>
+        var placa = "";
+        var contador1 = 1;
+        var contador2 = 1;
+        var tipoDocumento = "";
+        var datafiles = new FormData();
+
+        function openModal(){
+            $("#modalRequisitos").show();
+        }
+
+        function closeModal(){
+            $("#modalRequisitos").hide();
+        }
+
+        function LimpiarControles() {
+
+            $('select[id=cmbTipodocumento]').val("");         
+            $("#DocumentFiles").val("");
+
+            $("#lblArchivo1").html("Archivo 1");
+            $("#lblArchivo2").html("Archivo 2");
+            $("#lblArchivo3").html("Archivo 3");
+            $("#lblArchivo4").html("Archivo 4");
+
+            document.getElementById("chkArchivo1").checked = false;
+            document.getElementById("chkArchivo2").checked = false;
+            document.getElementById("chkArchivo3").checked = false;
+            document.getElementById("chkArchivo4").checked = false;
+
+            $('input:hidden[name=PolizaVehicular]').val("");
+            $('input:hidden[name=EndosodecesiondederechosafavordeMAFPeru]').val("");
+            $('input:hidden[name=Comprobantedepagodeprimatotal]').val("");
+            $('input:hidden[name=Otros]').val("");
+
+            datafiles = new FormData();
+        }
+        
+        function obtener_tipodocumento(id) {
+            var descripcion = "";            
+            $.ajax({
+                type: "POST",
+                url: 'https://api-col-prod.crossnet.la/WebApiMafperu/api/vehiculo/obtenertipodocumento?id=' + id,
+                async: false,
+                success: function (data) {
+                    descripcion = data;
+                }
+            });
+            
+            return descripcion;
+        }
+
+        function cargar_datos(id){ 
+            var nomTipoDocumento = "";           
+            var numeroDocumento = "";
+            var nombres = "";
+            var apellidoPaterno = "";
+            var apellidoMaterno = "";
+            var email = "";
+            var telefono = "";
+            var marca = "";
+            var modelo = "";
+            var anio = "";
+            var placa = "";
+            var uso = "";
+            var aseguradora = "";
+            var inivigencia = "";
+            var finvigencia = "";
+            var input = {
+                'placa': id
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "https://portal.mafperu.com/wa_renovacionSeguros/InformacionPortalWeb",
+                async: false,
+                headers: {
+                    "AccessKeyApiCore": "mafRenovacionSeguro2022$"
+                },
+                dataType: "json",
+                contentType: "application/json",
+                data: JSON.stringify({placa: "CFL318"}), //JSON.stringify(input),
+                success: function (response) {
+                    if (response != null) {
+
+                        var result = JSON.parse(JSON.stringify(response));
+
+                        if (result != null && result.data != null)
+                        {
+                            tipoDocumento = result.data.TipoDocumento.toString();
+                            numeroDocumento = result.data.NumeroDocumento;
+                            nombres = result.data.NombreCliente;
+                            apellidoPaterno = result.data.ApellidoPaterno;
+                            apellidoMaterno = result.data.ApellidoMaterno;
+                            email = result.data.EmailCorrespondencia;
+                            telefono = result.data.Telefono;
+                            marca = result.data.Marca;
+                            modelo = result.data.Modelo;
+                            anio = result.data.AnioFabricacion;
+                            placa = result.data.Placa;
+                            uso = result.data.Uso;
+                            aseguradora = result.data.Aseguradora;
+                            inivigencia = result.data.InicioVigencia;
+                            finvigencia = result.data.FinVigencia;
+                            nomTipoDocumento = obtener_tipodocumento(tipoDocumento);
+                        }
+
+                        $("#lblTipoDocumento").html(nomTipoDocumento);
+                        $("#lblNumeroDocumento").html(numeroDocumento);
+                        $("#lblNombres").html(nombres);
+                        $("#lblApellidoPaterno").html(apellidoPaterno);
+                        $("#lblApellidoMaterno").html(apellidoMaterno);
+                        $("#lblEmail").html(email);
+                        $("#lblTelefono").html(telefono);
+                        $("#lblMarca").html(marca);
+                        $("#lblModelo").html(modelo);
+                        $("#lblAnioFabricacion").html(anio);
+                        $("#lblPlaca").html(placa);
+                        $("#lblUso").html(uso);
+                        $("#lblAseguradora").html(aseguradora);
+                        $("#lblInicioVigencia").html(inivigencia);
+                        $("#lblFinVigencia").html(finvigencia);
+                    }
+                },
+                failure: function (response) {
+                    alert("Hubo error al cargar datos. Por favor, verifique.");
+                }
+            });
+        }
+
+        function enviar_archivo(indicadorExito, guid, idreclamo, asunto, data)
+        {
+            // var url = "https://mafperu.com.pe/wa_experiencia_crm_vs2/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto; // https://mafperu.com.pe/wa_experiencia_crm_vs2/api/
+            var url = "https://localhost:44324/api/vehiculo/enviararchivo?indicadorExito=" + indicadorExito + "&guid=" + guid + "&idsolicitud=" + idreclamo + "&asunto=" + asunto;
+            $.ajax({
+                type: "POST",
+                url: url,
+                contentType: false,
+                processData: false,
+                data: data,
+                success: function (response) {
+                },
+                failure: function (response) {
+                    alert("Hubo error en proceso de envío de archivos.");
+                }
+            });
+        }
+
+        function validarDatos(){
+            var validaDatos = true;
+            var numdoc = $("#lblNumeroDocumento").text().trim();
+            var nombres = $("#lblNombres").text().trim();
+            var apaterno = $("#lblApellidoPaterno").text().trim();
+            var amaterno = $("#lblApellidoMaterno").text().trim();  
+            var correo = $("#lblEmail").text().trim();
+            var telefono = $("#lblTelefono").text().trim();            
+
+            if (tipoDocumento == ""){
+                validaDatos = false;
+            }
+            if (numdoc == ""){
+                validaDatos = false;
+            }
+            if (nombres == ""){
+                validaDatos = false;
+            }
+            if (apaterno == ""){
+                validaDatos = false;
+            }
+            if (amaterno == ""){
+                validaDatos = false;
+            }
+            if (correo == ""){
+                validaDatos = false;
+            }
+            if (telefono == ""){
+                validaDatos = false;
+            }
+
+            return validaDatos;
+        }
+
+        function adjuntar_archivo(){
+            var aprobacion = 1;            
+            var files = document.getElementById('DocumentFiles').files;
+            var tipoarchivo = $('select[id=cmbTipoarchivo]').val();
+
+            if (files.length > 1){
+                alert("Seleccione un Archivo.");
+                return;
+            }
+
+            if (tipoarchivo == ""){
+                alert("Seleccione un Tipo de Archivo.");
+                return;
+            }
+
+            if (contador1 > 4){
+                alert("Se ha superado la cantidad de archivos permitidos.");
+                return;
+            }
+
+            for (var i = 0; i < files.length; i++) {
+                var documento = files[i].name;
+                var extension = documento.split('.').pop();
+
+                if (extension == 'jpg' || extension == 'jpeg' || extension == 'png' || extension == 'bmp' || extension == 'doc' || extension == 'docx' || extension == 'pdf') {                    
+                    aprobacion = 1;
+
+                    datafiles.append("file" + contador1, files[i]);
+                    contador1 = contador1 + 1;
+                    
+                    var nomctrl = "#lblArchivo"+contador2;
+                    $(nomctrl).html(documento);
+                    contador2 = contador2 + 1;
+
+                    if (tipoarchivo == "PolizaVehicular"){
+                        document.getElementById("chkArchivo1").checked = true;
+                        $('input:hidden[name=PolizaVehicular]').val(documento);
+                    }
+                    if (tipoarchivo == "EndosodecesiondederechosafavordeMAFPeru"){
+                        document.getElementById("chkArchivo2").checked = true;
+                        $('input:hidden[name=EndosodecesiondederechosafavordeMAFPeru]').val(documento);
+                    }
+                    if (tipoarchivo == "Comprobantedepagodeprimatotal"){
+                        document.getElementById("chkArchivo3").checked = true;
+                        $('input:hidden[name=Comprobantedepagodeprimatotal]').val(documento);
+                    }
+                    if (tipoarchivo == "Otros"){
+                        document.getElementById("chkArchivo4").checked = true;
+                        $('input:hidden[name=Otros]').val(documento);
+                    }
+
+                } else {
+                    aprobacion = 0;
+                }
+            }
+
+            if (aprobacion == 0){
+                alert("Solo se permite archivos jpg, jpeg, png, bmp, doc, docx y pdf.");
+                return;
+            }
+
+            //Liberando...
+            $('select[id=cmbTipoarchivo]').val("");         
+            $("#DocumentFiles").val("");
+        }
+
+        function eliminar_archivo(id){
+            var elements = [];            
+            for (const value of datafiles.values()){
+                elements.push({value});
+            }
+
+            if(elements.length > 0){
+                var a = 'file'+id;
+                var objeto = datafiles.get(a);
+                datafiles.delete(a);
+
+                var elem = "#lblArchivo"+id;
+                var texto = "Archivo " + id; 
+                $(elem).html(texto);
+
+                //Desactivando checks
+                var idchk;
+                if ($('input:hidden[name=PolizaVehicular]').val() == objeto.name){
+                    idchk = 1;
+                }
+                if ($('input:hidden[name=EndosodecesiondederechosafavordeMAFPeru]').val() == objeto.name){
+                    idchk = 2;
+                }
+                if ($('input:hidden[name=Comprobantedepagodeprimatotal]').val() == objeto.name){
+                    idchk = 3;
+                }
+                if ($('input:hidden[name=Otros]').val() == objeto.name){
+                    idchk = 4;
+                }
+
+                var check = "chkArchivo"+idchk;                
+                document.getElementById(check).checked = false;
+            }
+        }
+
+        function enviar(){
+            if (validarDatos() == true) {
+                var elements = [];
+                for (const value of datafiles.values()) {
+                    elements.push({value});
+                }
+                if(elements.length == 0){
+                    alert("Seleccione un Tipo de Archivo.");
+                    return;
+                }
+
+                var _tipodocumento = tipoDocumento;
+                var _nomtipodocumento = $("#lblTipoDocumento").text().trim();
+                var _nrodocumento = $("#lblNumeroDocumento").text().trim();
+                var _nombres = $("#lblNombres").text().trim();
+                var _apaterno = $("#lblApellidoPaterno").text().trim();
+                var _amaterno = $("#lblApellidoMaterno").text().trim();
+                var _correo = $("#lblEmail").text().trim();
+                var _telefono = $("#lblTelefono").text().trim();              
+                var _marca = $("#lblMarca").text().trim();
+                var _modelo = $("#lblModelo").text().trim();
+                var _anio = $("#lblAnioFabricacion").text().trim();
+                var _placa = $("#lblPlaca").text().trim();
+                var _uso = $("#lblUso").text().trim();
+                var _aseguradora = $("#lblAseguradora").text().trim();
+                var _inivigencia = $("#lblInicioVigencia").text().trim();
+                var _finvigencia = $("#lblFinVigencia").text().trim();
+                var _descripcion = "Marca: " + _marca + " Modelo: " + _modelo + " Año Fab.: " + _anio + " Placa: " + _placa + " Uso: " + _uso + " Aseguradora: " + _aseguradora + " Ini. Vigencia: " + _inivigencia + " Fin. Vigencia: " + _finvigencia;
+                var _motivoCod = "8c332a94-90d6-ea11-a813-000d3a378e0f"; //Seguros
+                var _submotivoCod = "5b42dcfa-0f6c-ed11-9561-000d3a354326"; //Renovación de Póliza de Seguros - MI portal web MAF          
+                var _tipoCaso = "10"; //Solicitud
+                var _tipoProducto = "460710000"; //Crédito Vehicular
+                var _envioNotificacion = "E"; //Correo Electrónico   
+
+                var _mensaje = "<!DOCTYPE html>";
+                _mensaje = _mensaje + "<html>";
+                _mensaje = _mensaje + "<head>";
+                _mensaje = _mensaje + "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>";
+                _mensaje = _mensaje + "<title></title>";
+                _mensaje = _mensaje + "</head>";
+                _mensaje = _mensaje + "<body>";
+                _mensaje = _mensaje + "<p><b>Datos del Cliente</b></p>";
+                _mensaje = _mensaje + "<p>Tipo de Documento:" + " " + _nomtipodocumento + "</p>";
+                _mensaje = _mensaje + "<p>Número de Documento:" + " " + _nrodocumento + "</p>";
+                _mensaje = _mensaje + "<p>Nombres:" + " " + _nombres + "</p>";
+                _mensaje = _mensaje + "<p>Apellido Paterno:" + " " + _apaterno + "</p>";
+                _mensaje = _mensaje + "<p>Apellido Materno:" + " " + _amaterno + "</p>";
+                _mensaje = _mensaje + "<p>Email:" + " " + _correo + "</p>";
+                _mensaje = _mensaje + "<p>Teléfono:" + " " + _telefono + "</p>";
+                _mensaje = _mensaje + "<p><b>Datos del Vehículo</b></p>";
+                _mensaje = _mensaje + "<p>Marca:" + " " + _marca + "</p>";
+                _mensaje = _mensaje + "<p>Modelo:" + " " + _modelo + "</p>";
+                _mensaje = _mensaje + "<p>Año de Fabricación:" + " " + _anio + "</p>";
+                _mensaje = _mensaje + "<p>Placa:" + " " + _placa + "</p>";
+                _mensaje = _mensaje + "<p>Uso:" + " " + _uso + "</p>";
+                _mensaje = _mensaje + "<p><b>Datos del último seguro vehicular</b></p>";
+                _mensaje = _mensaje + "<p>Aseguradora:" + " " + _aseguradora + "</p>";
+                _mensaje = _mensaje + "<p>Inicio de vigencia:" + " " + _inivigencia + "</p>";
+                _mensaje = _mensaje + "<p>Fin de vigencia:" + " " + _finvigencia + "</p>";
+                _mensaje = _mensaje + "</body>";
+                _mensaje = _mensaje + "</html>";              
+
+                var registro = {
+                    'RazonSocial' : '',
+                    'TipoDoc' : _tipodocumento,
+                    'NroDoc' : _nrodocumento,
+                    'Nombres' : _nombres,
+                    'ApellidoPaterno' : _apaterno,
+                    'ApellidoMaterno' : _amaterno,
+                    'Email' : _correo,
+                    'Celular' : _telefono,
+                    'Motivo' : _motivoCod,
+                    'SubMotivo' : _submotivoCod,
+                    'DetalleCaso' : _descripcion,
+                    'TipoCaso' : _tipoCaso,
+                    'TipoProductoLib' : _tipoProducto,
+                    'EnvioNotificacion' : _envioNotificacion                    
+                };
+                // var _url = 'https://localhost:44324/api/vehiculo/enviarvehiculo?mensaje=' + _mensaje;  
+                var _url = 'https://api-col-prod.crossnet.la/WebApiMafperu/api/vehiculo/enviarvehiculo?mensaje=' + _mensaje;  
+                
+                $.ajax({
+                    type: "POST",
+                    url: _url,
+                    dataType: "json",
+                    contentType: "application/json;charset=utf-8",
+                    data: JSON.stringify(registro),
+                    beforeSend: function() {
+                        setTimeout(function(){
+                            $("#modalWait").show();
+                            $('#btnEnviar').prop('disabled', true);
+
+                        }, 1000);
+                    },
+                    success: function (response) {
+                        if (response != null) {
+                            var result = JSON.parse(JSON.stringify(response));
+                            var indicadorExito = 0;
+                            var guid = '';
+                            var idreclamo = '';
+                           
+                            if (result != null)
+                            {
+                                indicadorExito = result.indicadorExito;
+                                guid = result.guid;
+                                idreclamo = result.idreclamo;
+
+                                enviar_archivo(indicadorExito, guid, idreclamo, "Informacion Vehicular", datafiles); 
+                                
+                                $("#modalWait").hide();
+                                $("#cliente").html(_nombres);
+                                $("#modalSuccess").modal("show");
+                                $('#btnEnviar').prop('disabled', false);                                   
+                                
+                                LimpiarControles();                               
+                            }
+                            else{
+                                alert("Hubo error en proceso de envío. Por favor, verifique.");
+                            }
+                        }
+                    },
+                    failure: function (response) {
+                        alert("Hubo error en proceso de envío.");
+                    }
+                });  
+            }else{
+                alert("Los campos Tipo y Número de documento, Nombres y Apellidos, Correo y Teléfono son obligatorios.");
+            }          
+        }
+
+        $(document).ready(function () {            
+            const params = new URLSearchParams(window.location.search);
+            placa = params.get('placa');
+
+            cargar_datos(placa);
+        });
+
+    </script>
+</head>
+<body>
+    <table align="center">
+        <tr>
+            <td colspan="4" class="fila_titulo">Datos del Cliente</td>
+        </tr>
+        <tr>
+            <td>Tipo de documento</td>
+            <td><label id="lblTipoDocumento"></label></td>
+            <td>Número de documento</td>
+            <td><label id="lblNumeroDocumento"></label></td>
+        </tr>
+        <tr>
+            <td>Nombres</td>
+            <td><label id="lblNombres"></label></td>
+            <td>Apellido Paterno</td>
+            <td><label id="lblApellidoPaterno"></label></td>
+        </tr>
+        <tr>
+            <td>Apellido Materno</td>
+            <td><label id="lblApellidoMaterno"></label></td>
+            <td>Email</td>
+            <td><label id="lblEmail"></label></td>
+        </tr>
+        <tr>
+            <td>Telefono</td>
+            <td><label id="lblTelefono"></label></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="fila_titulo">Datos del Vehículo</td>
+        </tr>
+        <tr>
+            <td>Marca</td>
+            <td><label id="lblMarca"></label></td>
+            <td>Modelo</td>
+            <td><label id="lblModelo"></label></td>
+        </tr>
+        <tr>
+            <td>Año de Fabricación</td>
+            <td><label id="lblAnioFabricacion"></label></td>
+            <td>Placa</td>
+            <td><label id="lblPlaca"></label></td>
+        </tr>
+        <tr>
+            <td>Uso</td>
+            <td><label id="lblUso"></label></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="4" class="fila_titulo">Datos del último seguro vehicular</td>
+        </tr>
+        <tr>
+            <td>Aseguradora</td>
+            <td><label id="lblAseguradora"></label></td>
+            <td>Inicio de vigencia</td>
+            <td><label id="lblInicioVigencia"></label></td>
+        </tr>
+        <tr>
+            <td>Fin de vigencia</td>
+            <td><label id="lblFinVigencia"></label></td>
+        </tr>
+    </table>
+    <table align="center">
+        <tr>
+            <td colspan="5" class="fila_titulo">Carga de documentos</td>
+        </tr>
+        <tr>
+            <td colspan="5" style="width:100%;text-align:right;"><a onclick="openModal();">Consultar requisitos&nbsp;&nbsp;</a></td>
+        </tr>
+        <tr>
+            <td style="width:130px;">Seleccionar archivo</td>
+            <td style="width:300px;"><input type="file" id="DocumentFiles" name="DocumentFiles" multiple="" style="width:330px;" /></td>
+            <td style="width:130px;">Tipo de archivo</td>
+            <td style="width:130px;">
+                <select id="cmbTipoarchivo" class="combo">
+                    <option value="" selected="selected">Seleccionar</option>
+                    <option value="PolizaVehicular">Póliza Vehicular</option>
+                    <option value="EndosodecesiondederechosafavordeMAFPeru">Endoso de cesión de derechos a favor de MAF Perú</option>
+                    <option value="Comprobantedepagodeprimatotal">Comprobante de pago de prima total</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </td>
+            <td style="width:130px;text-align:center;"><input id="btnAdjuntar" type="button" value="Adjuntar Archivo" class="boton" onclick="adjuntar_archivo();" /></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr style="height: 35px;">
+            <td></td>
+            <td style="width:120px;font-size: 12px;"><label id="lblArchivo1">Archivo 1</label></td>
+            <td></td>
+            <td><input id="btnArchivo1" type="button" value="Eliminar" class="boton" onclick="eliminar_archivo('1');" /></td>
+            <td></td>
+        </tr>
+        <tr style="height: 35px;">
+            <td></td>
+            <td style="width:120px;font-size: 12px;"><label id="lblArchivo2">Archivo 2</label></td>
+            <td></td>
+            <td><input id="btnArchivo2" type="button" value="Eliminar" class="boton" onclick="eliminar_archivo('2');" /></td>
+            <td></td>
+        </tr>
+        <tr style="height: 35px;">
+            <td></td>
+            <td style="width:120px;font-size: 12px;"><label id="lblArchivo3">Archivo 3</label></td>
+            <td></td>
+            <td><input id="btnArchivo3" type="button" value="Eliminar" class="boton" onclick="eliminar_archivo('3');" /></td>
+            <td></td>
+        </tr>
+        <tr style="height: 35px;">
+            <td></td>
+            <td style="width:120px;font-size: 12px;"><label id="lblArchivo4">Archivo 4</label></td>
+            <td></td>
+            <td><input id="btnArchivo4" type="button" value="Eliminar" class="boton" onclick="eliminar_archivo('4');" /></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="5" style="width:100%;">Listar documentos cargados</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td style="width:150px;font-size: 12px;"><input type="checkbox" id="chkArchivo1" value="PolizaVehicular" disabled="true" /> Póliza Vehicular</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td style="width:300px;font-size: 12px;"><input type="checkbox" id="chkArchivo2" value="EndosodecesiondederechosafavordeMAFPeru" disabled="true" /> Endoso de cesión de derechos a favor de MAF Perú</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td style="width:300px;font-size: 12px;"><input type="checkbox" id="chkArchivo3" value="Comprobantedepagodeprimatotal" disabled="true" /> Comprobante de pago de prima total</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td style="width:150px;font-size: 12px;"><input type="checkbox" id="chkArchivo4" value="Otros" disabled="true" /> Otros</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><input id="btnEnviar" type="button" value="Enviar" class="boton" onclick="enviar();" /></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="5" style="width:100%;font-size:11px;">
+                <em>Nota: Los únicos formatos permitidos son: jpg, jpeg, png, bmp, doc, docx y pdf.</em>
+            </td>
+        </tr>
+    </table>
+
+    <input type="hidden" id="PolizaVehicular" name="PolizaVehicular" value="" />
+    <input type="hidden" id="EndosodecesiondederechosafavordeMAFPeru" name="EndosodecesiondederechosafavordeMAFPeru" value="" />
+    <input type="hidden" id="Comprobantedepagodeprimatotal" name="Comprobantedepagodeprimatotal" value="" />
+    <input type="hidden" id="Otros" name="Otros" value="" />
+
+    <div class="modal" id="modalWait">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <img src='img/loading.gif' width='32px' height='32px'>&nbsp;&nbsp;Enviando la información, por favor espere.
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalSuccess" tabindex="-1" aria-labelledby="mdlSuccessTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mdlSuccessTitle">Información registrada</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="close"></button>
+                </div>
+                <div class="modal-body">
+                    Hola <strong id="cliente"></strong>! hemos recibido su caso correctamente, estaremos revisándolo para contactarnos con usted y brindarle una respuesta lo más antes posible. ¡Muchas gracias de parte de la familia de MAF!
+                </div>
+                <div class="modal-footer text-center">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="modalRequisitos">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a href="img/requisitos.png" download="requisitos.png">Descargar imagen</a>
+                </div>
+                <div class="modal-body">
+                    <img src='img/requisitos.png' width='100%' height='100%'>
+                </div>
+                <div class="modal-footer text-center">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="closeModal();">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
